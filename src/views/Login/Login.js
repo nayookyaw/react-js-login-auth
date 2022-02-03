@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Alert, Button, Card, CardBody, Col, Container, Form, Input, InputGroup, InputGroupText, Row } from 'reactstrap';
 
-import 'bootstrap/dist/css/bootstrap.min.css';
+// import 'bootstrap/dist/css/bootstrap.min.css';
 
 import logoTroyX from '../../assets/logo192.png';
 
