@@ -60,7 +60,6 @@ class ImagePoint extends Component {
   handleClickLabel = (e) => {
     console.log ("click label haha");
     console.log (e);
-
     // // https://stackoverflow.com/questions/64473531/how-to-obtain-id-of-konva-label-from-konvas-dblclick-event
     // let nodes = e.target.findAncestors('Label', true);
     // if (nodes.length > 0) {
@@ -71,12 +70,53 @@ class ImagePoint extends Component {
     // } else {
     //       console.log('ID (dblclick) = ' + parseInt(e.target.id()));
     // }
-
   }
 
   confirmDelete() {
-    console.log (this.state.circleList);
+    console.log(this.state.circleList);
+    this.setState({
+      deleteCircleList : []
+    }, () => {
+      console.log(this.state.deleteCircleList);
+      this.modalToggle();
+    });
 
+  }
+
+  confirmModalCircleDelete = () => {
+    for (let deleteCircle of this.state.deleteCircleList) {
+
+      let alreadyGreaterDeleteCircle = [];
+      let alreadySmallerDeleteCircle = [];
+
+      for (let i=0; i<this.state.deleteCircleList.length; i++) {
+
+        if (this.state.deleteCircleList[i] == deleteCircle) {
+          break;
+        }
+
+        if (this.state.deleteCircleList[i] > deleteCircle) {
+          alreadyGreaterDeleteCircle.push(this.state.deleteCircleList[i]);
+        } else {
+          alreadySmallerDeleteCircle.push(this.state.deleteCircleList[i]);
+        }
+
+      }
+
+      console.log(alreadyGreaterDeleteCircle);
+      console.log(alreadySmallerDeleteCircle);
+
+      let deleteCircleIndex = deleteCircle - 1;
+
+      // if (alreadyGreaterDeleteCircle.length > 0) {
+      //   deleteCircleIndex = deleteCircleIndex - alreadyGreaterDeleteCircle.length;
+      // }
+      if (alreadySmallerDeleteCircle.length > 0) {
+        deleteCircleIndex = deleteCircleIndex - alreadySmallerDeleteCircle.length;
+      }
+      
+      this.state.circleList.splice(deleteCircleIndex, 1);
+    }
     this.modalToggle();
   }
   
@@ -114,13 +154,26 @@ class ImagePoint extends Component {
     });
   }
 
-  toggleCheckboxHandler = (del_index) => () => {
+  toggleCheckboxHandler = (delete_circle) => () => {
+
     // https://stackoverflow.com/questions/66434403/how-to-get-multiple-checkbox-values-in-react-js
-    this.setState({
-      deleteCircleList : [
-        ...this.state.deleteCircleList,
-        this.state.deleteCircleList[del_index[del_index]] ? null : {[del_index] : del_index}
-      ]}, () => console.log(this.state.deleteCircleList));
+
+    const index = this.state.deleteCircleList.indexOf(delete_circle);
+
+    if (index > -1) {
+
+      this.state.deleteCircleList.splice(index, 1);
+
+    } else {
+
+      this.setState({
+        deleteCircleList : [
+          ...this.state.deleteCircleList,
+          delete_circle
+        ]
+      }, () => console.log(this.state.deleteCircleList));
+    }
+
   };
 
   render () {
@@ -162,7 +215,7 @@ class ImagePoint extends Component {
             </ul>
           </ModalBody>
           <ModalFooter>
-            <Button color="primary" onClick={this.confirmDelete}>Delete</Button>{' '}
+            <Button color="primary" onClick={this.confirmModalCircleDelete}>Delete</Button>{' '}
             <Button color="secondary" onClick={this.modalToggle}>Cancel</Button>
           </ModalFooter>
         </Modal>
@@ -179,7 +232,8 @@ class CirclePointList extends Component {
         type="checkbox" 
         style={{'marginRight': '15px'}} 
         onChange={this.props.toggleCheckboxHandler(this.props.label)}
-        checked={this.props.deleteCircleList[this.props.label-1]} />   
+        // checked={this.props.deleteCircleList.indexOf(this.props.label) > -1}
+         />   
       Circle Point {this.props.label} </li>
   }
 }
