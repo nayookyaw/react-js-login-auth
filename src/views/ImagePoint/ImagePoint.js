@@ -1,5 +1,6 @@
 import React, { Component, createRef } from "react";
 import { Stage, Layer, Group, Circle, Label, Text } from 'react-konva';
+import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 
 import logoTroyX from '../../assets/map.jpg';
 
@@ -16,6 +17,8 @@ class ImagePoint extends Component {
       stageRef: createRef(null),
       stageWidth: 0,
       stageHeight: 0,
+      showModal: false,
+      deleteCircleList: []
     }
 
     this.confirmDelete = this.confirmDelete.bind(this);
@@ -35,6 +38,7 @@ class ImagePoint extends Component {
     this.setState({
       circleList: [...this.state.circleList, 
         <Label 
+          id={this.state.circleList.length}
           x={imageClickX}
           y={imageClickY}
           draggable
@@ -56,10 +60,24 @@ class ImagePoint extends Component {
   handleClickLabel = (e) => {
     console.log ("click label haha");
     console.log (e);
+
+    // // https://stackoverflow.com/questions/64473531/how-to-obtain-id-of-konva-label-from-konvas-dblclick-event
+    // let nodes = e.target.findAncestors('Label', true);
+    // if (nodes.length > 0) {
+    //   for (let i = 0; i < nodes.length; i++){
+    //     let id = nodes[i].getAttr("id")              
+    //     console.log('shape ' + i + ' ID (dblclick)', id )
+    //   }
+    // } else {
+    //       console.log('ID (dblclick) = ' + parseInt(e.target.id()));
+    // }
+
   }
 
   confirmDelete() {
     console.log (this.state.circleList);
+
+    this.modalToggle();
   }
   
   handleZoomStage = (event) => {
@@ -90,6 +108,21 @@ class ImagePoint extends Component {
     
   }
 
+  modalToggle = () => {
+    this.setState({
+      showModal: !this.state.showModal
+    });
+  }
+
+  toggleCheckboxHandler = (del_index) => () => {
+    // https://stackoverflow.com/questions/66434403/how-to-get-multiple-checkbox-values-in-react-js
+    this.setState({
+      deleteCircleList : [
+        ...this.state.deleteCircleList,
+        this.state.deleteCircleList[del_index[del_index]] ? null : {[del_index] : del_index}
+      ]}, () => console.log(this.state.deleteCircleList));
+  };
+
   render () {
     let { stageWidth , stageHeight } = this.state;
 
@@ -114,10 +147,41 @@ class ImagePoint extends Component {
           </Layer>
         </Stage>
         <button onClick={this.confirmDelete}>Delete</button>
+
+        <Modal isOpen={this.state.showModal} toggle={this.modalToggle} className={this.props.className}>
+          <ModalHeader toggle={this.modalToggle}>Delete Circle Point</ModalHeader>
+          <ModalBody>
+            <ul>
+            {
+              this.state.circleList.map((cur, index) => <CirclePointList 
+                key={index} 
+                label={index+1} 
+                toggleCheckboxHandler={this.toggleCheckboxHandler}
+                deleteCircleList={this.state.deleteCircleList} />)
+            }
+            </ul>
+          </ModalBody>
+          <ModalFooter>
+            <Button color="primary" onClick={this.confirmDelete}>Delete</Button>{' '}
+            <Button color="secondary" onClick={this.modalToggle}>Cancel</Button>
+          </ModalFooter>
+        </Modal>
       </>
     )
   }
 
+}
+
+class CirclePointList extends Component {
+  render () {
+    return <li style={{'listStyleType': 'none'}}>
+      <input 
+        type="checkbox" 
+        style={{'marginRight': '15px'}} 
+        onChange={this.props.toggleCheckboxHandler(this.props.label)}
+        checked={this.props.deleteCircleList[this.props.label-1]} />   
+      Circle Point {this.props.label} </li>
+  }
 }
 
 export default ImagePoint
