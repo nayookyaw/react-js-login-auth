@@ -1,12 +1,12 @@
 import React, { Component, createRef } from "react";
-import { Stage, Layer, Group, Circle, Label, Text } from 'react-konva';
+import { Stage, Layer, Group, Circle, Label, Text, Rect } from 'react-konva';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
 
 import logoTroyX from '../../assets/map.jpg';
 
 import Images from "./Images";
 
-class ImagePoint extends Component {
+class ImagePointDiv extends Component {
 
   constructor(props) {
     super(props);
@@ -26,7 +26,7 @@ class ImagePoint extends Component {
   }
   
   componentDidMount () {
-    let jsonImageClickCoordList = JSON.parse(localStorage.getItem('imageClickCoordList'));
+    let jsonImageClickCoordList = JSON.parse(localStorage.getItem('imageDivClickCoordList'));
     if (jsonImageClickCoordList) {
       console.log(jsonImageClickCoordList);
       this.circleListAfterDeleteReload(jsonImageClickCoordList);
@@ -36,26 +36,51 @@ class ImagePoint extends Component {
   circleListAfterDeleteReload = (imageClickCoordList) => {
     let circleListTemp = [];
     imageClickCoordList.map((cur,index) => circleListTemp[index] = <Label 
-          id={index+1}
-          x={cur.x}
-          y={cur.y}
-          draggable
-          onClick = {this.handleClickLabel}
+            id={this.state.imageClickCoordList.length}
+            x={cur.x}
+            y={cur.y}
+            draggable
+            onClick = {this.handleClickLabel}
         >
-          <Circle
+            <Rect
+                width={25}
+                height={25}
+                fill="red"
+                shadowBlur={5}
+            />
+            <Text text={index+1} offsetX={-8} offsetY={-8} />
+            <Rect
+            x={25}
             width={25}
             height={25}
-            fill="red"
+            fill="green"
             shadowBlur={5}
-          />
-          <Text text={index+1} offsetX={3} offsetY={3} />
+            />
+            <Text text={index+1} offsetX={-30} offsetY={-8} />
+            <Rect
+            y={25}
+            width={25}
+            height={25}
+            fill="blue"
+            shadowBlur={5}
+            />
+            <Text text={index+1} offsetX={-8} offsetY={-30} />
+            <Rect
+            x={25}
+            y={25}
+            width={25}
+            height={25}
+            fill="orange"
+            shadowBlur={5}
+            />
+            <Text text={index+1} offsetX={-30} offsetY={-30} />
         </Label>
     )
     this.setState({
       circleList: [...circleListTemp],
       imageClickCoordList: [...imageClickCoordList]
     }, () => {
-      localStorage.setItem('imageClickCoordList', JSON.stringify([...imageClickCoordList]));
+      localStorage.setItem('imageDivClickCoordList', JSON.stringify([...imageClickCoordList]));
     })
   }
   
@@ -81,17 +106,42 @@ class ImagePoint extends Component {
             draggable
             onClick = {this.handleClickLabel}
           >
-            <Circle
+            <Rect
+                width={25}
+                height={25}
+                fill="red"
+                shadowBlur={5}
+            />
+            <Text text={this.state.imageClickCoordList.length } offsetX={-8} offsetY={-8} />
+            <Rect
+            x={25}
               width={25}
               height={25}
-              fill="red"
+              fill="green"
               shadowBlur={5}
             />
-            <Text text={this.state.imageClickCoordList.length } offsetX={3} offsetY={3} />
+            <Text text={this.state.imageClickCoordList.length } offsetX={-30} offsetY={-8} />
+            <Rect
+            y={25}
+              width={25}
+              height={25}
+              fill="blue"
+              shadowBlur={5}
+            />
+            <Text text={this.state.imageClickCoordList.length } offsetX={-8} offsetY={-30} />
+            <Rect
+            x={25}
+            y={25}
+              width={25}
+              height={25}
+              fill="orange"
+              shadowBlur={5}
+            />
+            <Text text={this.state.imageClickCoordList.length } offsetX={-30} offsetY={-30} />
           </Label>
         ]
       }, () => {
-        localStorage.setItem('imageClickCoordList', JSON.stringify([...this.state.imageClickCoordList]));
+        localStorage.setItem('imageDivClickCoordList', JSON.stringify([...this.state.imageClickCoordList]));
       })
     })
   
@@ -100,16 +150,6 @@ class ImagePoint extends Component {
   handleClickLabel = (e) => {
     console.log ("click label haha");
     console.log (e);
-    // // https://stackoverflow.com/questions/64473531/how-to-obtain-id-of-konva-label-from-konvas-dblclick-event
-    // let nodes = e.target.findAncestors('Label', true);
-    // if (nodes.length > 0) {
-    //   for (let i = 0; i < nodes.length; i++){
-    //     let id = nodes[i].getAttr("id")              
-    //     console.log('shape ' + i + ' ID (dblclick)', id )
-    //   }
-    // } else {
-    //       console.log('ID (dblclick) = ' + parseInt(e.target.id()));
-    // }
   }
 
   confirmDelete() {
@@ -147,10 +187,6 @@ class ImagePoint extends Component {
       console.log(alreadySmallerDeleteCircle);
 
       let deleteCircleIndex = deleteCircle - 1;
-
-      // if (alreadyGreaterDeleteCircle.length > 0) {
-      //   deleteCircleIndex = deleteCircleIndex - alreadyGreaterDeleteCircle.length;
-      // }
       
       if (alreadySmallerDeleteCircle.length > 0) {
         deleteCircleIndex = deleteCircleIndex - alreadySmallerDeleteCircle.length;
@@ -200,8 +236,6 @@ class ImagePoint extends Component {
   }
 
   toggleCheckboxHandler = (delete_circle) => () => {
-
-    // https://stackoverflow.com/questions/66434403/how-to-get-multiple-checkbox-values-in-react-js
 
     const index = this.state.deleteCircleList.indexOf(delete_circle);
 
@@ -273,15 +307,15 @@ class ImagePoint extends Component {
 class CirclePointList extends Component {
   render () {
     return <li style={{'listStyleType': 'none'}}>
-      <input 
-        type="checkbox" 
-        style={{'marginRight': '15px'}} 
-        onChange={this.props.toggleCheckboxHandler(this.props.label)}
-        // checked={this.props.deleteCircleList.indexOf(this.props.label) > -1}
-         />   
-      Circle Point {this.props.label} </li>
+                <input 
+                    type="checkbox" 
+                    style={{'marginRight': '15px'}} 
+                    onChange={this.props.toggleCheckboxHandler(this.props.label)}
+                />   
+                Div Point {this.props.label} 
+            </li>
   }
 }
 
-export default ImagePoint
+export default ImagePointDiv
 
