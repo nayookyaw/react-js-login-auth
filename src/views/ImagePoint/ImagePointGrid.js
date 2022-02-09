@@ -60,14 +60,10 @@ class ImagePointGrid extends Component {
   
               let gridNo = index + 1;
 
+              x = 25 * (colCount - 1);
               if (rowCount) {
                 y = 25 * rowCount;
               }
-
-              if (colCount <= colLimit) {
-                x = 25 * (colCount - 1) ;
-              }
-
               offsetX = offsetInit - (offsetDistance * (colCount - 1));
               offsetY = offsetInit - (offsetDistance * rowCount);
 

@@ -41,6 +41,7 @@ class ImagePoint extends Component {
           y={cur.y}
           draggable
           onClick = {this.handleClickLabel}
+          onDragEnd={this.handleDragLabelCoordination}
         >
           <Circle
             width={25}
@@ -58,9 +59,8 @@ class ImagePoint extends Component {
       localStorage.setItem('imageClickCoordList', JSON.stringify([...imageClickCoordList]));
     })
   }
-  
-  handleClickImage = (e) => {
-   
+
+  calculateCoordination = (e) => {
     const stage = e.target.getStage();
     const pointerPosition = stage.getPointerPosition();
     const offset = {x: stage.x(), y: stage.y()};
@@ -68,18 +68,45 @@ class ImagePoint extends Component {
     const imageClickX = (pointerPosition.x - offset.x) * (1/stage.scaleX());
     const imageClickY = (pointerPosition.y - offset.y) * (1/stage.scaleX());
 
+    return {x: imageClickX, y: imageClickY};
+  }
+
+  handleDragLabelCoordination = (e) => {
+
+    let {x, y} = this.calculateCoordination(e);
+
+    let id = 0;
+    let nodes = e.target.findAncestors('Label', true);
+    if (nodes.length > 0) {
+      for (let i = 0; i < nodes.length; i++){
+        id = nodes[i].getAttr("id")              
+      }
+    } else {
+      id = parseInt(e.target.id());
+    }
+
+    this.state.imageClickCoordList[id-1] = {x, y};
+    localStorage.setItem('imageClickCoordList', JSON.stringify([...this.state.imageClickCoordList]));
+
+  }
+  
+  handleClickImage = (e) => {
+   
+    let {x, y}= this.calculateCoordination(e);
+
     // do stuff
     this.setState({
-      imageClickCoordList: [...this.state.imageClickCoordList, {x: imageClickX, y: imageClickY}],
+      imageClickCoordList: [...this.state.imageClickCoordList, {x, y}],
     }, () => {
       this.setState({
         circleList: [...this.state.circleList, 
           <Label 
             id={this.state.imageClickCoordList.length}
-            x={imageClickX}
-            y={imageClickY}
+            x={x}
+            y={y}
             draggable
             onClick = {this.handleClickLabel}
+            onDragEnd={this.handleDragLabelCoordination}
           >
             <Circle
               width={25}
