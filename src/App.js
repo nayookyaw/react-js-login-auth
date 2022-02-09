@@ -4,7 +4,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Login from './views/Login/Login';
 import Home from './views/Home/Home';
 import ImagePoint from './views/ImagePoint/ImagePoint';
-import ImagePointDiv from './views/ImagePoint/ImagePointDiv';
+import ImagePointGrid from './views/ImagePoint/ImagePointGrid';
 
 class App extends Component {
   render () {
@@ -16,7 +16,7 @@ class App extends Component {
               <Route path="/login" element={ <Login />} />
               <Route path="/" element={ <Home />} />
               <Route path="/image/point" element={ <ImagePoint />} />
-              <Route path="/image/point/div" element={ <ImagePointDiv />} />
+              <Route path="/image/point/grid" element={ <ImagePointGrid />} />
             </Routes>
           </div>
         </BrowserRouter>
