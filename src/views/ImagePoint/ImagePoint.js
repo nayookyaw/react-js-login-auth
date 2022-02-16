@@ -1,8 +1,9 @@
 import React, { Component, createRef } from "react";
 import { Stage, Layer, Group, Circle, Label, Text } from 'react-konva';
 import { Button, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
+import { Form } from 'react-bootstrap';
 
-import logoTroyX from '../../assets/map.jpg';
+import mapImg from '../../assets/map.jpg';
 
 import Images from "./Images";
 
@@ -12,14 +13,22 @@ class ImagePoint extends Component {
     super(props);
 
     this.state = {
-      image: logoTroyX,
+      image: mapImg,
       circleList: [],
       stageRef: createRef(null),
       stageWidth: 0,
       stageHeight: 0,
-      showModal: false,
+      showDeleteModal: false,
+      showAssignModal: false,
       deleteCircleList: [],
-      imageClickCoordList: []
+      imageClickCoordList: [],
+      currentClickEvent: "",
+      selectedMacAddress : "",
+      errorAssignSensor : "",
+      freeMacAddressList: [
+        { id: 1, mac: "65:34:W3:T5:43" },
+        { id: 2, mac: "45:3R:53:B5:83" },
+      ],
     }
 
     this.confirmDelete = this.confirmDelete.bind(this);
@@ -27,16 +36,19 @@ class ImagePoint extends Component {
   
   componentDidMount () {
     let jsonImageClickCoordList = JSON.parse(localStorage.getItem('imageClickCoordList'));
+    
     if (jsonImageClickCoordList) {
       console.log(jsonImageClickCoordList);
-      this.circleListAfterDeleteReload(jsonImageClickCoordList);
+      this.loadPoints(jsonImageClickCoordList);
     }
   }
 
-  circleListAfterDeleteReload = (imageClickCoordList) => {
+  loadPoints = (imageClickCoordList) => {
     let circleListTemp = [];
-    imageClickCoordList.map((cur,index) => circleListTemp[index] = <Label 
-          id={index+1}
+
+    imageClickCoordList.map((cur,index) => circleListTemp[index] = <Label
+          id={(index+1).toString()}
+          key = {(index+1).toString()}
           x={cur.x}
           y={cur.y}
           draggable
@@ -52,12 +64,14 @@ class ImagePoint extends Component {
           <Text text={index+1} offsetX={3} offsetY={3} />
         </Label>
     )
+
     this.setState({
       circleList: [...circleListTemp],
       imageClickCoordList: [...imageClickCoordList]
     }, () => {
       localStorage.setItem('imageClickCoordList', JSON.stringify([...imageClickCoordList]));
-    })
+    });
+
   }
 
   calculateCoordination = (e) => {
@@ -85,23 +99,46 @@ class ImagePoint extends Component {
       id = parseInt(e.target.id());
     }
 
-    this.state.imageClickCoordList[id-1] = {x, y};
+    let tempList = this.state.imageClickCoordList.slice();
+    tempList[id-1] = {x,y};
+    this.setState({ imageClickCoordList : tempList });
+
     localStorage.setItem('imageClickCoordList', JSON.stringify([...this.state.imageClickCoordList]));
 
   }
   
   handleClickImage = (e) => {
-   
-    let {x, y}= this.calculateCoordination(e);
+    
+    this.setState({ currentClickEvent : e });
+    this.assignModalToggle();
+  }
 
-    // do stuff
+  handleChangeAddPoint = (e) => {
+    this.setState({ selectedMacAddress : e.target.value });
+    console.log (e.target.value);
+  }
+
+  confirmAssignPoint = () => {
+
+    console.log (this.state.selectedMacAddress);
+
+    if (!this.state.selectedMacAddress) {
+      this.setState({ errorAssignSensor : "! Please select sensor"});
+      return;
+    }
+    
+    let c_event = this.state.currentClickEvent;
+    let {x, y}= this.calculateCoordination(c_event);
+
+    // do stuff after assign mac address
     this.setState({
       imageClickCoordList: [...this.state.imageClickCoordList, {x, y}],
     }, () => {
       this.setState({
         circleList: [...this.state.circleList, 
           <Label 
-            id={this.state.imageClickCoordList.length}
+            id={(this.state.imageClickCoordList.length).toString()}
+            key = {this.state.imageClickCoordList.length}
             x={x}
             y={y}
             draggable
@@ -120,8 +157,8 @@ class ImagePoint extends Component {
       }, () => {
         localStorage.setItem('imageClickCoordList', JSON.stringify([...this.state.imageClickCoordList]));
       })
-    })
-  
+    });
+
   }
 
   handleClickLabel = (e) => {
@@ -145,7 +182,7 @@ class ImagePoint extends Component {
       deleteCircleList : []
     }, () => {
       console.log(this.state.deleteCircleList);
-      this.modalToggle();
+      this.deleteModalToggle();
     });
 
   }
@@ -158,7 +195,7 @@ class ImagePoint extends Component {
 
       for (let i=0; i<this.state.deleteCircleList.length; i++) {
 
-        if (this.state.deleteCircleList[i] == deleteCircle) {
+        if (this.state.deleteCircleList[i] === deleteCircle) {
           break;
         }
 
@@ -187,9 +224,9 @@ class ImagePoint extends Component {
 
     }
 
-    this.circleListAfterDeleteReload(this.state.imageClickCoordList);
+    this.loadPoints(this.state.imageClickCoordList);
     
-    this.modalToggle();
+    this.deleteModalToggle();
   }
   
   handleZoomStage = (event) => {
@@ -220,9 +257,16 @@ class ImagePoint extends Component {
     
   }
 
-  modalToggle = () => {
+  deleteModalToggle = () => {
     this.setState({
-      showModal: !this.state.showModal
+      showDeleteModal: !this.state.showDeleteModal
+    });
+  }
+
+  assignModalToggle = () => {
+    this.setState({
+      showAssignModal : !this.state.showAssignModal,
+      selectedMacAddress : ""
     });
   }
 
@@ -249,7 +293,7 @@ class ImagePoint extends Component {
   };
 
   render () {
-    let { stageWidth , stageHeight } = this.state;
+    let { stageWidth , stageHeight, freeMacAddressList, errorAssignSensor } = this.state;
 
     stageWidth = window.innerWidth;
     stageHeight = window.innerHeight * 0.5;
@@ -273,8 +317,35 @@ class ImagePoint extends Component {
         </Stage>
         <button onClick={this.confirmDelete}>Delete</button>
 
-        <Modal isOpen={this.state.showModal} toggle={this.modalToggle} className={this.props.className}>
-          <ModalHeader toggle={this.modalToggle}>Delete Circle Point</ModalHeader>
+        {/* Adding Point Modal */}
+        <Modal isOpen={this.state.showAssignModal} toggle={this.assignModalToggle} className={this.props.className}>
+          <ModalHeader toggle={this.assignModalToggle}>Assign New Point</ModalHeader>
+          <ModalBody>
+            <Form.Select
+              value={this.state.selectedMacAddress}
+              onChange={this.handleChangeAddPoint}
+            >
+              <option value="">Select One Sensor </option>
+              {
+                freeMacAddressList.map((val, index) => 
+                  <ListMacAddress 
+                    key={index} 
+                    optVal={val.mac} 
+                  />)
+              }
+            </Form.Select>
+            <div style={{ textAlign: "center" , color: "red" }}>{errorAssignSensor}</div>
+
+          </ModalBody>
+          <ModalFooter>
+            <Button color="secondary" onClick={this.assignModalToggle}>Cancel</Button>{' '}
+            <Button color="success" onClick={this.confirmAssignPoint}>Assign</Button>
+          </ModalFooter>
+        </Modal>
+
+        {/* Delete Modal */}
+        <Modal isOpen={this.state.showDeleteModal} toggle={this.deleteModalToggle} className={this.props.className}>
+          <ModalHeader toggle={this.deleteModalToggle}>Delete Circle Point</ModalHeader>
           <ModalBody>
             <ul>
             {
@@ -287,8 +358,8 @@ class ImagePoint extends Component {
             </ul>
           </ModalBody>
           <ModalFooter>
-            <Button color="primary" onClick={this.confirmModalCircleDelete}>Delete</Button>{' '}
-            <Button color="secondary" onClick={this.modalToggle}>Cancel</Button>
+            <Button color="secondary" onClick={this.deleteModalToggle}>Cancel</Button> {' '}
+            <Button color="danger" onClick={this.confirmModalCircleDelete}>Delete</Button>
           </ModalFooter>
         </Modal>
       </>
@@ -305,8 +376,14 @@ class CirclePointList extends Component {
         style={{'marginRight': '15px'}} 
         onChange={this.props.toggleCheckboxHandler(this.props.label)}
         // checked={this.props.deleteCircleList.indexOf(this.props.label) > -1}
-         />   
+      />   
       Circle Point {this.props.label} </li>
+  }
+}
+
+class ListMacAddress extends Component {
+  render () {
+    return <option value={this.props.optVal}> {this.props.optVal} </option>
   }
 }
 

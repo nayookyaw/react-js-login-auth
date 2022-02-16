@@ -40,7 +40,7 @@ class Login extends Component {
             <Card className="p-4" style={{ minWidth: '360px', maxWidth: '360px' }}>
               <CardBody>
                 {alertLoginError}
-                <img className='logo-login' src={logoTroyX} style={{ width : '250px'}} ></img>
+                <img className='logo-login' src={logoTroyX} style={{ width : '250px'}} alt="" ></img>
                 <Form onSubmit={this.login} >
                   <h1>Login</h1>
                   <p className="text-muted">Sign In to your account</p>
